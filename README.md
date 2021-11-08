@@ -2,7 +2,7 @@
 
 `vobsubocr` is a blazingly fast and accurate DVD VobSub to SRT subtitle conversion tool.
 
-# Background
+## Background
 
 DVD subtitles are unfortunately encoded essentially as a series of images. This
 presents problems when needing a text representation of the subtitle, e.g. for
@@ -10,13 +10,13 @@ language learning. `vobsubocr` can alleviate this problem by generating SRT
 subtitles from an input VobSub file, leveraging the power of
 [Tesseract](https://github.com/tesseract-ocr/tesseract).
 
-# Installation
+## Installation
 
 This package is not on crates.io yet, so you will have to clone and build with
 `cargo`. You will need to have Tesseract's development libraries installed; see
 the [leptess readme](https://github.com/houqp/leptess) for more details.
 
-# Usage
+## Usage
 
 ```sh
 # Convert simplified Chinese vobsub subtitles and print them to stdout.
@@ -33,7 +33,7 @@ We can also specify more advanced configuration options for Tesseract with `-c`.
 vobsubocr -l eng -c tessedit_char_blacklist='|\/`_~' shrek_eng.idx
 ```
 
-# How does it work/compare to similar tools?
+## How does it work/compare to similar tools?
 
 The most comparable tool to `vobsubocr` is
 [VobSub2SRT](https://github.com/ruediger/VobSub2SRT), but `vobsubocr` has
@@ -48,7 +48,7 @@ non-English languages in particular.
 Official documentation on how to improve accuracy of Tesseract output can be
 viewed [here](https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html).
 
-# Miscellaneous Notes
+## Miscellaneous Notes
 
 From my understanding, the `chi_sim` and `chi_tra` Tesseract models work on both
 simplified and traditional Chinese text, but automatically convert said text to
