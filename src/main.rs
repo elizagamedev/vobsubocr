@@ -86,12 +86,24 @@ fn run(opt: Opt) -> Result<i32> {
         }
         .build()
     })?;
-    let mut subtitle_file = File::create(&opt.output).context(WriteSrt {
-        filename: opt.output.clone(),
-    })?;
-    subtitle_file.write_all(&subtitle_data).context(WriteSrt {
-        filename: opt.output.clone(),
-    })?;
+
+    match opt.output {
+        Some(output) => {
+            // Write to file.
+            let mut subtitle_file = File::create(&output).context(WriteSrt {
+                filename: output.clone(),
+            })?;
+            subtitle_file.write_all(&subtitle_data).context(WriteSrt {
+                filename: output.clone(),
+            })?;
+        }
+        None => {
+            // Write to stdout.
+            io::stdout().write_all(&subtitle_data).context(WriteSrt {
+                filename: "<stdout>",
+            })?;
+        }
+    }
 
     Ok(return_code)
 }

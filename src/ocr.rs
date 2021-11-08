@@ -1,15 +1,21 @@
+use std::str::Utf8Error;
+
 use crate::{opt::Opt, preprocessor::PreprocessedVobSubtitle};
 use image::{
     pnm::{PNMSubtype, SampleEncoding},
     DynamicImage, GrayImage,
 };
+use leptess::{
+    leptonica::PixError,
+    tesseract::{TessInitError, TessSetVariableError},
+    LepTess, Variable,
+};
 use rayon::prelude::*;
 use scoped_tls_hkt::scoped_thread_local;
 use snafu::{ResultExt, Snafu};
 use subparse::timetypes::TimeSpan;
-use tesseract::{OcrEngineMode, Tesseract};
 
-scoped_thread_local!(static mut TESSERACT: TesseractWrapper);
+scoped_thread_local!(static mut TESSERACT: Option<TesseractWrapper>);
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -17,23 +23,19 @@ pub enum Error {
     BuildThreadPool { source: rayon::ThreadPoolBuildError },
 
     #[snafu(display("Could not initialize tesseract {}", source))]
-    Initialize { source: tesseract::InitializeError },
+    Initialize { source: TessInitError },
 
     #[snafu(display("Could not set tesseract variable: {}", source))]
-    SetVariable { source: tesseract::SetVariableError },
+    SetVariable { source: TessSetVariableError },
 
     #[snafu(display("Could not write image to memory: {}", source))]
     WriteImage { source: image::ImageError },
 
     #[snafu(display("Could not set tesseract image: {}", source))]
-    SetImage {
-        source: tesseract::plumbing::leptonica_plumbing::PixReadMemError,
-    },
+    SetImage { source: PixError },
 
     #[snafu(display("Could not get tesseract text: {}", source))]
-    GetText {
-        source: tesseract::plumbing::TessBaseApiGetUtf8TextError,
-    },
+    GetText { source: Utf8Error },
 
     #[snafu(display("Tesseract not initialized"))]
     TesseractNotInitialized,
@@ -49,11 +51,7 @@ pub fn process(
     Ok(rayon::ThreadPoolBuilder::new()
         .build_scoped(
             |thread| {
-                let mut tesseract = TesseractWrapper::new(
-                    opt.tessdata.clone(),
-                    opt.lang.clone(),
-                    opt.blacklist.clone(),
-                );
+                let mut tesseract = None;
                 TESSERACT.set(&mut tesseract, || thread.run())
             },
             |pool| {
@@ -65,7 +63,18 @@ pub fn process(
                                 .images
                                 .into_iter()
                                 .map(|image| {
-                                    TESSERACT.with(|tesseract| {
+                                    TESSERACT.with(|maybe_tesseract| {
+                                        let tesseract = match maybe_tesseract {
+                                            Some(tesseract) => tesseract,
+                                            None => {
+                                                let tesseract = TesseractWrapper::new(
+                                                    opt.tessdata_dir.as_deref(),
+                                                    &opt.lang,
+                                                    &opt.config,
+                                                )?;
+                                                maybe_tesseract.insert(tesseract)
+                                            }
+                                        };
                                         tesseract.set_image(image, opt.dpi)?;
                                         Ok(tesseract.get_text()?)
                                     })
@@ -81,20 +90,32 @@ pub fn process(
 }
 
 struct TesseractWrapper {
-    datapath: Option<String>,
-    language: String,
-    blacklist: String,
-    tesseract: Option<Tesseract>,
+    leptess: LepTess,
 }
 
 impl TesseractWrapper {
-    fn new(datapath: Option<String>, language: String, blacklist: String) -> Self {
-        Self {
-            datapath,
-            language,
-            blacklist,
-            tesseract: None,
+    fn new(
+        datapath: Option<&str>,
+        language: impl AsRef<str>,
+        config: &[(Variable, String)],
+    ) -> Result<Self> {
+        let mut leptess = LepTess::new(datapath, language.as_ref()).context(Initialize {})?;
+        // Disable learning by default, though a user could re-enable this
+        // option with `-c`. We turn this off since we are are multithreading,
+        // so this option would result in non-deterministic output.
+        leptess
+            .set_variable(leptess::Variable::ClassifyEnableLearning, "0")
+            .context(SetVariable {})?;
+        // 7 is PSM_SINGLE_LINE. We have preprocessed the input into individual
+        // lines, and telling Tesseract this fact greatly improves accuracy.
+        leptess
+            .set_variable(leptess::Variable::TesseditPagesegMode, "7")
+            .context(SetVariable {})?;
+        // Add user options.
+        for (key, value) in config {
+            leptess.set_variable(*key, value).context(SetVariable {})?;
         }
+        Ok(Self { leptess })
     }
 
     /// Set the tesseract image to the given image's contents.
@@ -106,41 +127,15 @@ impl TesseractWrapper {
                 image::ImageOutputFormat::Pnm(PNMSubtype::Graymap(SampleEncoding::Binary)),
             )
             .context(WriteImage {})?;
-        self.with_tesseract(|tesseract| {
-            Ok(tesseract
-                .set_image_from_mem(&bytes)
-                .context(SetImage {})?
-                .set_source_resolution(dpi))
-        })?;
+        self.leptess
+            .set_image_from_mem(&bytes)
+            .context(SetImage {})?;
+        self.leptess.set_source_resolution(dpi);
         Ok(())
     }
 
     /// Get text.
     fn get_text(&mut self) -> Result<String> {
-        Ok(self
-            .tesseract
-            .as_mut()
-            .ok_or(Error::TesseractNotInitialized)?
-            .get_text()
-            .context(GetText {})?)
-    }
-
-    /// Run mutable tesseract code without angering the rust compiler.
-    fn with_tesseract(&mut self, func: impl FnOnce(Tesseract) -> Result<Tesseract>) -> Result<()> {
-        let tesseract = match self.tesseract.take() {
-            Some(tesseract) => tesseract,
-            None => Tesseract::new_with_oem(
-                self.datapath.as_deref(),
-                Some(&self.language),
-                OcrEngineMode::LstmOnly,
-            )
-            .context(Initialize {})?
-            .set_variable("classify_enable_learning", "0")
-            .context(SetVariable {})?
-            .set_variable("tessedit_char_blacklist", &self.blacklist)
-            .context(SetVariable {})?,
-        };
-        self.tesseract = Some(func(tesseract)?);
-        Ok(())
+        Ok(self.leptess.get_utf8_text().context(GetText {})?)
     }
 }

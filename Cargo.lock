@@ -506,10 +506,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
-name = "leptonica-plumbing"
-version = "0.1.0"
+name = "leptess"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d8c1ed61dfc5d6afd0316f632c4a4024de8c9897878226425afabe16175e51f"
+checksum = "1574614507481dca4c64e4acc20dfc19f1e432295abae08b1741a6760998aeca"
+dependencies = [
+ "tesseract-plumbing",
+ "thiserror",
+]
+
+[[package]]
+name = "leptonica-plumbing"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d9c9a9c02ff523c808960bab7bbe64a93201e7a86942f276429ac43306a87ed"
 dependencies = [
  "leptonica-sys",
  "thiserror",
@@ -965,21 +975,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "tesseract"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63ecf0b5dfa30e49801fd79dbda4cbced7bc8831d050eccba806c38fb3d68dc0"
-dependencies = [
- "tesseract-plumbing",
- "tesseract-sys",
- "thiserror",
-]
-
-[[package]]
 name = "tesseract-plumbing"
-version = "0.3.0"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc0caf5af89aadb5e6e25bc2ced0eceb553d4ea8314e5876d4cb0690a206a55e"
+checksum = "49212e1ad9511a098143f1e990c5ab7401ef6c7bfb0e2c57ab385fa7f87d2a88"
 dependencies = [
  "leptonica-plumbing",
  "tesseract-sys",
@@ -1135,12 +1134,12 @@ version = "0.1.0"
 dependencies = [
  "clap 3.0.0-beta.5",
  "image 0.23.14",
+ "leptess",
  "log 0.4.14",
  "rayon",
  "scoped-tls-hkt",
  "snafu",
  "subparse",
- "tesseract",
  "vobsub",
 ]
 
