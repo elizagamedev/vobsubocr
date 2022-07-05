@@ -43,7 +43,7 @@ pub struct Opt {
     pub output: Option<PathBuf>,
 
     /// Path to Tesseract's tessdata directory.
-    #[clap(short = 'd', long, value_hint = ValueHint::DirPath)]
+    #[clap(short = 'D', long, value_hint = ValueHint::DirPath)]
     pub tessdata_dir: Option<String>,
 
     /// The Tesseract language(s) to use for OCR.
