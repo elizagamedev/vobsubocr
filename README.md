@@ -12,9 +12,22 @@ subtitles from an input VobSub file, leveraging the power of
 
 ## Installation
 
-This package is not on crates.io yet, so you will have to clone and build with
-`cargo`. You will need to have Tesseract's development libraries installed; see
-the [leptess readme](https://github.com/houqp/leptess) for more details.
+Install the latest release with cargo:
+
+```sh
+cargo install mujmap
+```
+
+Or alternatively, install the development version from git:
+
+```sh
+cargo install --git https://github.com/elizagamedev/vobsubocr
+```
+
+You will need to have Tesseract's development libraries installed; see the
+[leptess readme](https://github.com/houqp/leptess) for more details. If you use
+Nix, the provided shell.nix provides an environment with all of the necessary
+dependencies.
 
 ## Usage
 
