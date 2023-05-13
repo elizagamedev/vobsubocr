@@ -193,7 +193,7 @@ fn binarize_palette(
         return [false; 4];
     }
 
-    let result = sub_palette
+    sub_palette
         .into_iter_fixed()
         .rev()
         .zip(sub_palette_visibility)
@@ -205,8 +205,7 @@ fn binarize_palette(
                 false
             }
         })
-        .collect();
-    result
+        .collect()
 }
 
 /// Inventory each scanline of the image, recording if a given scanline has
