@@ -295,7 +295,7 @@ fn scanline_groups_to_image_regions(
         .map(|y_range| {
             let mut left = usize::MAX;
             let mut right = usize::MIN;
-            for y in y_range.clone().into_iter() {
+            for y in y_range.clone() {
                 // Unwrap here, since we should have filtered out all None
                 // scanlines before calling this.
                 let x = scanlines[y].as_ref().unwrap();
