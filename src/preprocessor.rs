@@ -226,7 +226,7 @@ fn inventory_scanlines(
                     || None,
                     |scanline: Option<ScanlineExtent>, x| {
                         let offset = y * width + x;
-                        let palette_ix = subtitle.raw_image()[offset as usize] as usize;
+                        let palette_ix = subtitle.raw_image()[offset] as usize;
                         if palette[palette_ix] {
                             match scanline {
                                 Some(extent) => Some(ScanlineExtent {
