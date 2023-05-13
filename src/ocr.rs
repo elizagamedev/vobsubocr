@@ -2,7 +2,7 @@ use std::{io::Cursor, str::Utf8Error};
 
 use crate::{opt::Opt, preprocessor::PreprocessedVobSubtitle};
 use image::{
-    pnm::{PNMSubtype, SampleEncoding},
+    codecs::pnm::{PnmSubtype, SampleEncoding},
     DynamicImage, GrayImage,
 };
 use leptess::{
@@ -126,7 +126,7 @@ impl TesseractWrapper {
         DynamicImage::ImageLuma8(image)
             .write_to(
                 &mut bytes,
-                image::ImageOutputFormat::Pnm(PNMSubtype::Graymap(SampleEncoding::Binary)),
+                image::ImageOutputFormat::Pnm(PnmSubtype::Graymap(SampleEncoding::Binary)),
             )
             .context(WriteImageSnafu {})?;
         self.leptess
