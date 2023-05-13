@@ -9,7 +9,6 @@ use iter_fixed::IntoIteratorFixed;
 use log::warn;
 use rayon::prelude::*;
 use subparse::timetypes::{TimePoint, TimeSpan};
-use vobsub;
 
 pub struct PreprocessedVobSubtitle {
     pub time_span: TimeSpan,
