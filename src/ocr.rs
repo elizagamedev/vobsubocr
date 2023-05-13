@@ -1,4 +1,4 @@
-use std::str::Utf8Error;
+use std::{io::Cursor, str::Utf8Error};
 
 use crate::{opt::Opt, preprocessor::PreprocessedVobSubtitle};
 use image::{
@@ -122,7 +122,7 @@ impl TesseractWrapper {
 
     /// Set the tesseract image to the given image's contents.
     fn set_image(&mut self, image: GrayImage, dpi: i32) -> Result<()> {
-        let mut bytes: Vec<u8> = Vec::new();
+        let mut bytes: Cursor<Vec<u8>> = Cursor::new(Vec::new());
         DynamicImage::ImageLuma8(image)
             .write_to(
                 &mut bytes,
@@ -130,7 +130,7 @@ impl TesseractWrapper {
             )
             .context(WriteImageSnafu {})?;
         self.leptess
-            .set_image_from_mem(&bytes)
+            .set_image_from_mem(bytes.get_ref())
             .context(SetImageSnafu {})?;
         self.leptess.set_source_resolution(dpi);
         Ok(())
