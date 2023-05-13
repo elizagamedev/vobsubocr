@@ -5,6 +5,7 @@ use std::{
 
 use crate::opt::Opt;
 use image::{GrayImage, ImageBuffer, Luma};
+use iter_fixed::IntoIteratorFixed;
 use log::warn;
 use rayon::prelude::*;
 use subparse::timetypes::{TimePoint, TimeSpan};
@@ -193,20 +194,19 @@ fn binarize_palette(
         return [false; 4];
     }
 
-    let mut result: [bool; 4] = Default::default();
-    for (i, (&palette_ix, &visible)) in sub_palette
-        .iter()
+    let result = sub_palette
+        .into_iter_fixed()
         .rev()
         .zip(sub_palette_visibility)
-        .enumerate()
-    {
-        result[i] = if visible {
-            let luminance = palette[palette_ix as usize] / max_luminance;
-            luminance > threshold
-        } else {
-            false
-        }
-    }
+        .map(|(&palette_ix, &visible)| {
+            if visible {
+                let luminance = palette[palette_ix as usize] / max_luminance;
+                luminance > threshold
+            } else {
+                false
+            }
+        })
+        .collect();
     result
 }
 
