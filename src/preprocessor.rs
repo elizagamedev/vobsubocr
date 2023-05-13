@@ -38,7 +38,7 @@ pub fn preprocess_subtitles(opt: &Opt) -> Result<Vec<PreprocessedVobSubtitle>> {
     let result = subtitles
         .par_iter()
         .filter_map(|sub| {
-            subtitle_to_images(&sub, &palette, opt.threshold, opt.border).map(|images| {
+            subtitle_to_images(sub, &palette, opt.threshold, opt.border).map(|images| {
                 PreprocessedVobSubtitle {
                     time_span: TimeSpan::new(
                         seconds_to_time_point(sub.start_time()),
