@@ -100,7 +100,7 @@ fn subtitle_to_images(
 
     let scanlines = inventory_scanlines(subtitle, &binarized_palette);
     let scanline_groups = find_contiguous_scanline_groups(&scanlines);
-    if scanline_groups.len() == 0 {
+    if scanline_groups.is_empty() {
         // No images found.
         return None;
     }
