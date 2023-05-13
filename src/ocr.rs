@@ -86,7 +86,7 @@ pub fn process(
                 })
             },
         )
-        .context(BuildThreadPool {})?)
+        .context(BuildThreadPoolSnafu {})?)
 }
 
 struct TesseractWrapper {
@@ -99,21 +99,23 @@ impl TesseractWrapper {
         language: impl AsRef<str>,
         config: &[(Variable, String)],
     ) -> Result<Self> {
-        let mut leptess = LepTess::new(datapath, language.as_ref()).context(Initialize {})?;
+        let mut leptess = LepTess::new(datapath, language.as_ref()).context(InitializeSnafu {})?;
         // Disable learning by default, though a user could re-enable this
         // option with `-c`. We turn this off since we are are multithreading,
         // so this option would result in non-deterministic output.
         leptess
             .set_variable(leptess::Variable::ClassifyEnableLearning, "0")
-            .context(SetVariable {})?;
+            .context(SetVariableSnafu {})?;
         // 7 is PSM_SINGLE_LINE. We have preprocessed the input into individual
         // lines, and telling Tesseract this fact greatly improves accuracy.
         leptess
             .set_variable(leptess::Variable::TesseditPagesegMode, "7")
-            .context(SetVariable {})?;
+            .context(SetVariableSnafu {})?;
         // Add user options.
         for (key, value) in config {
-            leptess.set_variable(*key, value).context(SetVariable {})?;
+            leptess
+                .set_variable(*key, value)
+                .context(SetVariableSnafu {})?;
         }
         Ok(Self { leptess })
     }
@@ -126,16 +128,16 @@ impl TesseractWrapper {
                 &mut bytes,
                 image::ImageOutputFormat::Pnm(PNMSubtype::Graymap(SampleEncoding::Binary)),
             )
-            .context(WriteImage {})?;
+            .context(WriteImageSnafu {})?;
         self.leptess
             .set_image_from_mem(&bytes)
-            .context(SetImage {})?;
+            .context(SetImageSnafu {})?;
         self.leptess.set_source_resolution(dpi);
         Ok(())
     }
 
     /// Get text.
     fn get_text(&mut self) -> Result<String> {
-        Ok(self.leptess.get_utf8_text().context(GetText {})?)
+        Ok(self.leptess.get_utf8_text().context(GetTextSnafu {})?)
     }
 }
