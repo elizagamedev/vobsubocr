@@ -73,14 +73,12 @@ fn seconds_to_time_point(seconds: f64) -> TimePoint {
 
 /// Convert an sRGB palette to a luminance palette.
 fn rgb_palette_to_luminance(palette: &vobsub::Palette) -> [f32; 16] {
-    let mut luminance_palette: [f32; 16] = Default::default();
-    for (i, x) in palette.iter().enumerate() {
+    palette.map(|x| {
         let r = srgb_to_linear(x[0]);
         let g = srgb_to_linear(x[1]);
         let b = srgb_to_linear(x[2]);
-        luminance_palette[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
-    return luminance_palette;
+        0.2126 * r + 0.7152 * g + 0.0722 * b
+    })
 }
 
 /// Given a subtitle, binarize, invert, and split the image into multiple lines
