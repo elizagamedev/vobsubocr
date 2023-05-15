@@ -13,14 +13,14 @@ homepage = "https://github.com/elizagamedev/vobsubocr/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "3", features = ["cargo", "derive"] }
-image = "0.23.14"
+clap = { version = "4.2", features = ["cargo", "derive"] }
+image = "0.24"
 iter_fixed = "0.3.1"
 leptess = "0.14.0"
 log = "0.4.14"
 rayon = "1.5.1"
 scoped-tls-hkt = "0.1.2"
 simple_logger = { version = "4.1.0", features = ["colors"] }
-snafu = "0.6.10"
+snafu = "0.7"
 subparse = "0.7.0"
 vobsub = "0.2.3"
