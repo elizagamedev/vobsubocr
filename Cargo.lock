@@ -618,6 +618,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "iter_fixed"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d1d13810ef04ff22d946a8445d1e0016c9e98dbb6deeeb2af061e753060737c"
+
+[[package]]
 name = "itertools"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1377,6 +1383,7 @@ version = "0.1.1"
 dependencies = [
  "clap",
  "image 0.24.6",
+ "iter_fixed",
  "leptess",
  "log 0.4.17",
  "rayon",

@@ -5,6 +5,7 @@ use std::{
 
 use crate::opt::Opt;
 use image::{GrayImage, ImageBuffer, Luma};
+use iter_fixed::IntoIteratorFixed;
 use log::warn;
 use rayon::prelude::*;
 use subparse::timetypes::{TimePoint, TimeSpan};
@@ -73,14 +74,12 @@ fn seconds_to_time_point(seconds: f64) -> TimePoint {
 
 /// Convert an sRGB palette to a luminance palette.
 fn rgb_palette_to_luminance(palette: &vobsub::Palette) -> [f32; 16] {
-    let mut luminance_palette: [f32; 16] = Default::default();
-    for (i, x) in palette.iter().enumerate() {
+    palette.map(|x| {
         let r = srgb_to_linear(x[0]);
         let g = srgb_to_linear(x[1]);
         let b = srgb_to_linear(x[2]);
-        luminance_palette[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
-    return luminance_palette;
+        0.2126 * r + 0.7152 * g + 0.0722 * b
+    })
 }
 
 /// Given a subtitle, binarize, invert, and split the image into multiple lines
@@ -195,20 +194,19 @@ fn binarize_palette(
         return [false; 4];
     }
 
-    let mut result: [bool; 4] = Default::default();
-    for (i, (&palette_ix, &visible)) in sub_palette
-        .iter()
+    let result = sub_palette
+        .into_iter_fixed()
         .rev()
         .zip(sub_palette_visibility)
-        .enumerate()
-    {
-        result[i] = if visible {
-            let luminance = palette[palette_ix as usize] / max_luminance;
-            luminance > threshold
-        } else {
-            false
-        }
-    }
+        .map(|(&palette_ix, &visible)| {
+            if visible {
+                let luminance = palette[palette_ix as usize] / max_luminance;
+                luminance > threshold
+            } else {
+                false
+            }
+        })
+        .collect();
     result
 }
 
