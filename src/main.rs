@@ -6,7 +6,7 @@ mod preprocessor;
 
 use crate::opt::Opt;
 use clap::Parser;
-use log::warn;
+use log::{warn, LevelFilter};
 use snafu::{ErrorCompat, ResultExt, Snafu};
 use std::{
     fs::File,
@@ -111,6 +111,12 @@ fn run(opt: Opt) -> Result<i32> {
 }
 
 fn main() {
+    simple_logger::SimpleLogger::new()
+        .without_timestamps()
+        .with_level(LevelFilter::Warn)
+        .env()
+        .init()
+        .unwrap();
     let code = match run(Opt::parse()) {
         Ok(rc) => rc,
         Err(e) => {
