@@ -15,7 +15,7 @@ subtitles from an input VobSub file, leveraging the power of
 Install the latest release with cargo:
 
 ```sh
-cargo install mujmap
+cargo install vobsubocr
 ```
 
 Or alternatively, install the development version from git:
