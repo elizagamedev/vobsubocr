@@ -39,7 +39,7 @@ pub struct Opt {
     pub border: u32,
 
     /// Output subtitle file; stdout if not present.
-    #[clap(short = 'o', long, parse(from_os_str), value_hint = ValueHint::FilePath)]
+    #[clap(short = 'o', long, value_parser, value_hint = ValueHint::FilePath)]
     pub output: Option<PathBuf>,
 
     /// Path to Tesseract's tessdata directory.
@@ -56,10 +56,10 @@ pub struct Opt {
     /// particularly useful option is `tessedit_char_blacklist=|\/`_~` or
     /// similar, to prevent the OCR from misidentifying characters as symbols
     /// rarely used in subtitles.
-    #[clap(short = 'c', long, parse(try_from_str = parse_key_val), number_of_values = 1)]
+    #[clap(short = 'c', long, value_parser = parse_key_val, number_of_values = 1)]
     pub config: Vec<(Variable, String)>,
 
-    #[clap(name = "FILE", parse(from_os_str), value_hint = ValueHint::FilePath)]
+    #[clap(name = "FILE", value_parser, value_hint = ValueHint::FilePath)]
     pub input: PathBuf,
 
     /// Dump processed subtitle images into the working directory as PNGs.

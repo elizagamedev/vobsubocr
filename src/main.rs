@@ -45,7 +45,7 @@ enum Error {
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 fn run(opt: Opt) -> Result<i32> {
-    let vobsubs = preprocessor::preprocess_subtitles(&opt).context(ReadSubtitles {
+    let vobsubs = preprocessor::preprocess_subtitles(&opt).context(ReadSubtitlesSnafu {
         filename: opt.input.clone(),
     })?;
 
@@ -54,12 +54,12 @@ fn run(opt: Opt) -> Result<i32> {
         for (i, sub) in vobsubs.iter().enumerate() {
             for (j, image) in sub.images.iter().enumerate() {
                 let filename = format!("{:06}-{:02}.png", i, j);
-                image.save(&filename).context(DumpImage { filename })?;
+                image.save(&filename).context(DumpImageSnafu { filename })?;
             }
         }
     }
 
-    let subtitles = ocr::process(vobsubs, &opt).context(Ocr {})?;
+    let subtitles = ocr::process(vobsubs, &opt).context(OcrSnafu {})?;
 
     // Log errors and remove bad results.
     let mut return_code = 0;
@@ -77,13 +77,13 @@ fn run(opt: Opt) -> Result<i32> {
 
     // Create subtitle file.
     let subtitles = SubtitleFile::SubRipFile(SrtFile::create(subtitles).map_err(|e| {
-        GenerateSrt {
+        GenerateSrtSnafu {
             message: e.to_string(),
         }
         .build()
     })?);
     let subtitle_data = subtitles.to_data().map_err(|e| {
-        GenerateSrt {
+        GenerateSrtSnafu {
             message: e.to_string(),
         }
         .build()
@@ -92,18 +92,22 @@ fn run(opt: Opt) -> Result<i32> {
     match opt.output {
         Some(output) => {
             // Write to file.
-            let mut subtitle_file = File::create(&output).context(WriteSrt {
+            let mut subtitle_file = File::create(&output).context(WriteSrtSnafu {
                 filename: output.clone(),
             })?;
-            subtitle_file.write_all(&subtitle_data).context(WriteSrt {
-                filename: output.clone(),
-            })?;
+            subtitle_file
+                .write_all(&subtitle_data)
+                .context(WriteSrtSnafu {
+                    filename: output.clone(),
+                })?;
         }
         None => {
             // Write to stdout.
-            io::stdout().write_all(&subtitle_data).context(WriteSrt {
-                filename: "<stdout>",
-            })?;
+            io::stdout()
+                .write_all(&subtitle_data)
+                .context(WriteSrtSnafu {
+                    filename: "<stdout>",
+                })?;
         }
     }
 
