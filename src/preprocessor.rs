@@ -73,7 +73,7 @@ fn seconds_to_time_point(seconds: f64) -> TimePoint {
 
 /// Convert an sRGB palette to a luminance palette.
 fn rgb_palette_to_luminance(palette: &vobsub::Palette) -> [f32; 16] {
-    let mut luminance_palette: [f32; 16] = unsafe { std::mem::MaybeUninit::uninit().assume_init() };
+    let mut luminance_palette: [f32; 16] = Default::default();
     for (i, x) in palette.iter().enumerate() {
         let r = srgb_to_linear(x[0]);
         let g = srgb_to_linear(x[1]);
@@ -195,7 +195,7 @@ fn binarize_palette(
         return [false; 4];
     }
 
-    let mut result: [bool; 4] = unsafe { std::mem::MaybeUninit::uninit().assume_init() };
+    let mut result: [bool; 4] = Default::default();
     for (i, (&palette_ix, &visible)) in sub_palette
         .iter()
         .rev()
