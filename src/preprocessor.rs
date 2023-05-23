@@ -9,7 +9,6 @@ use iter_fixed::IntoIteratorFixed;
 use log::warn;
 use rayon::prelude::*;
 use subparse::timetypes::{TimePoint, TimeSpan};
-use vobsub;
 
 pub struct PreprocessedVobSubtitle {
     pub time_span: TimeSpan,
@@ -39,7 +38,7 @@ pub fn preprocess_subtitles(opt: &Opt) -> Result<Vec<PreprocessedVobSubtitle>> {
     let result = subtitles
         .par_iter()
         .filter_map(|sub| {
-            subtitle_to_images(&sub, &palette, opt.threshold, opt.border).map(|images| {
+            subtitle_to_images(sub, &palette, opt.threshold, opt.border).map(|images| {
                 PreprocessedVobSubtitle {
                     time_span: TimeSpan::new(
                         seconds_to_time_point(sub.start_time()),
@@ -101,7 +100,7 @@ fn subtitle_to_images(
 
     let scanlines = inventory_scanlines(subtitle, &binarized_palette);
     let scanline_groups = find_contiguous_scanline_groups(&scanlines);
-    if scanline_groups.len() == 0 {
+    if scanline_groups.is_empty() {
         // No images found.
         return None;
     }
@@ -194,7 +193,7 @@ fn binarize_palette(
         return [false; 4];
     }
 
-    let result = sub_palette
+    sub_palette
         .into_iter_fixed()
         .rev()
         .zip(sub_palette_visibility)
@@ -206,8 +205,7 @@ fn binarize_palette(
                 false
             }
         })
-        .collect();
-    result
+        .collect()
 }
 
 /// Inventory each scanline of the image, recording if a given scanline has
@@ -228,7 +226,7 @@ fn inventory_scanlines(
                     || None,
                     |scanline: Option<ScanlineExtent>, x| {
                         let offset = y * width + x;
-                        let palette_ix = subtitle.raw_image()[offset as usize] as usize;
+                        let palette_ix = subtitle.raw_image()[offset] as usize;
                         if palette[palette_ix] {
                             match scanline {
                                 Some(extent) => Some(ScanlineExtent {
@@ -296,7 +294,7 @@ fn scanline_groups_to_image_regions(
         .map(|y_range| {
             let mut left = usize::MAX;
             let mut right = usize::MIN;
-            for y in y_range.clone().into_iter() {
+            for y in y_range.clone() {
                 // Unwrap here, since we should have filtered out all None
                 // scanlines before calling this.
                 let x = scanlines[y].as_ref().unwrap();

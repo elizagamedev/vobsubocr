@@ -48,7 +48,7 @@ pub fn process(
     opt: &Opt,
 ) -> Result<Vec<Result<(TimeSpan, String)>>> {
     std::env::set_var("OMP_THREAD_LIMIT", "1");
-    Ok(rayon::ThreadPoolBuilder::new()
+    rayon::ThreadPoolBuilder::new()
         .build_scoped(
             |thread| {
                 let mut tesseract = None;
@@ -76,7 +76,7 @@ pub fn process(
                                             }
                                         };
                                         tesseract.set_image(image, opt.dpi)?;
-                                        Ok(tesseract.get_text()?)
+                                        tesseract.get_text()
                                     })
                                 })
                                 .collect::<Result<String>>()?;
@@ -86,7 +86,7 @@ pub fn process(
                 })
             },
         )
-        .context(BuildThreadPoolSnafu {})?)
+        .context(BuildThreadPoolSnafu {})
 }
 
 struct TesseractWrapper {
@@ -138,6 +138,6 @@ impl TesseractWrapper {
 
     /// Get text.
     fn get_text(&mut self) -> Result<String> {
-        Ok(self.leptess.get_utf8_text().context(GetTextSnafu {})?)
+        self.leptess.get_utf8_text().context(GetTextSnafu {})
     }
 }
