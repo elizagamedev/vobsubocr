@@ -20,7 +20,17 @@ pub type Result<T, E = vobsub::Error> = std::result::Result<T, E>;
 
 /// Return a vector of binarized subtitles.
 pub fn preprocess_subtitles(opt: &Opt) -> Result<Vec<PreprocessedVobSubtitle>> {
-    let idx = vobsub::Index::open(&opt.input)?;
+    let idx;
+    match vobsub::Index::open(&opt.input) {
+        Ok(i) => { idx = i; },
+        Err(e) => {
+            for msg in e.iter() {
+                println!("{}", msg);
+            };
+            panic!();
+        }
+    };
+
     let subtitles: Vec<vobsub::Subtitle> = idx
         .subtitles()
         .filter_map(|sub| match sub {
