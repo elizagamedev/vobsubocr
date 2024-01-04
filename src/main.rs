@@ -122,7 +122,7 @@ fn main() {
     let code = match run(Opt::parse()) {
         Ok(rc) => rc,
         Err(e) => {
-            eprintln!("An error occured: {}", e);
+            eprintln!("An error occurred: {}", e);
             if let Some(backtrace) = ErrorCompat::backtrace(&e) {
                 println!("{}", backtrace);
             }
